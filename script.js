@@ -15,19 +15,31 @@ async function updateResult() {
         return;
     }
 
-    const response = await axios.get('https://api.prod.jcloudify.com/whoami', { withCredentials: true });
     
-    if (response.status === 200 && response.data.captcha) {
-        console.log("Captcha detected...");
-        await new Promise(resolve => setTimeout(resolve, 1000)); 
+    try {
+        const response = await axios.get('https://api.prod.jcloudify.com/whoami', { withCredentials: true });
+        
+        if (response.status !== 200 || !response.data.captcha) {
+            console.log('Erreur de statut ou pas de captcha détecté');
+            return;
+        }
 
         const forbiddenMessage = document.createTextNode(`Forbidden`);
         resultContainer.appendChild(forbiddenMessage);
         resultContainer.appendChild(document.createElement('br'));
 
-    currentIndex++;
-    updateResult();
-}
+        currentIndex++;
+        updateResult();
+    } catch (error) {
+        if (error.response) {
+            console.log('Erreur de statut:', error.response.status);
+            console.log('Données de l\'erreur:', error.response.data);
+        } else if (error.request) {
+            console.log('La requête a été envoyée, mais aucune réponse n\'a été reçue');
+        } else {
+            console.log('Une erreur s\'est produite:', error.message);
+        }
+    }
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();

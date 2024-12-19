@@ -1,26 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>captcha</title>
-    <script type="text/javascript" src="https://b82b1763d1c3.eu-west-3.captcha-sdk.awswaf.com/b82b1763d1c3/jsapi.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forbidden Sequence</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #sequence {
+      margin-top: 20px;
+      list-style-type: none;
+      padding: 0;
+    }
+  </style>
 </head>
 <body>
-    <div class="form-container">
-        <h1>Forbidden Sequence</h1>
-        <form id="inputForm">
-            <label for="numberInput">Please enter a number between 1 and 1000 :</label>
-            <input type="number" id="numberInput" min="1" max="1000" required>
-            <button type="submit">Start sequence</button>
-        </form>
-    </div>
+  <form id="inputForm">
+    <label for="n">Enter a number (1 - 1000): </label>
+    <input id="n" type="number" min="1" max="1000" required>
+    <button type="submit">Submit</button>
+  </form>
 
-    <div class="result-container" id="resultContainer">
-        
-    </div>
+  <ul id="sequence"></ul>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
-    <script src="script.js"></script>
+  <script>
+    const form = document.getElementById('inputForm');
+    const sequenceList = document.getElementById('sequence');
+
+    let currentIndex = 1;
+    let totalRequests = 0;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const n = parseInt(document.getElementById('n').value, 10);
+
+      if (isNaN(n) || n < 1 || n > 1000) {
+        alert('Please enter a number between 1 and 1000.');
+        return;
+      }
+
+      totalRequests = n;
+      sequenceList.innerHTML = '';
+      form.style.display = 'none';
+      currentIndex = 1;
+      sendRequest();
+    });
+
+    async function sendRequest() {
+      if (currentIndex > totalRequests) return;
+
+      try {
+
+        const response = await fetch('https://api.prod.jcloudify.com/whoami', {
+          method: 'GET',
+          credentials: 'include', 
+        });
+
+        if (response.ok) {
+          addToSequence(`${currentIndex}. Forbidden`);
+          currentIndex++;
+          setTimeout(sendRequest, 1000); 
+        } else if (response.status === 403) {
+          alert('CAPTCHA detected. Please solve it in the browser to continue.');
+        } else {
+          throw new Error(`Unexpected status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error during request:', error);
+        addToSequence(`${currentIndex}. Forbidden`);
+        currentIndex++;
+        setTimeout(sendRequest, 1000);
+      }
+    }
+
+    function addToSequence(text) {
+      const listItem = document.createElement('li');
+      listItem.textContent = text;
+      sequenceList.appendChild(listItem);
+    }
+  </script>
 </body>
 </html>
