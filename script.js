@@ -19,10 +19,11 @@ async function updateResult() {
     
     if (response.status === 200 && response.data.captcha) {
         console.log("Captcha detected...");
-        await new Promise(resolve => setTimeout(resolve, 5000)); 
+        await new Promise(resolve => setTimeout(resolve, 1000)); 
 
-    const forbiddenMessage = document.createTextNode(`Forbidden`);
-    resultContainer.appendChild(forbiddenMessage);
+        const forbiddenMessage = document.createTextNode(`Forbidden`);
+        resultContainer.appendChild(forbiddenMessage);
+        resultContainer.appendChild(document.createElement('br'));
 
     currentIndex++;
     updateResult();
